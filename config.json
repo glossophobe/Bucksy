@@ -1,9 +1,5 @@
 {
-  "prefix": [
-    "?",
-    "!",
-    "."
-  ],
+  "prefix": ["?", "!", "."],
   "mongoDBURL": "mongodb://localhost:27017/",
   "mongoDBName": "bucksy",
   "botName": "Bucksy",
@@ -16,16 +12,8 @@
   "guessTime": "0 30 9-21 * * *",
   "startingPoints": 500,
   "verifiedRole": true,
-  "modRoles": [
-    "moderator",
-    "administrative",
-    "bots"
-  ],
-  "teams": [
-    "instinct",
-    "mystic",
-    "valor"
-  ],
+  "modRoles": ["moderator", "administrative", "bots"],
+  "teams": ["instinct", "mystic", "valor"],
   "channels": {
     "admin": {
       "id": "392547781098733568",
@@ -58,6 +46,10 @@
     "pvp": {
       "id": "673943852457000986",
       "name": "everything-pvp"
+    },
+    "felicia": {
+      "id": "622627567555313704",
+      "name": "felicia"
     }
   },
   "hoppip": {

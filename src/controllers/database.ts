@@ -206,25 +206,38 @@ export async function isAdmin(user_id: string): Promise<boolean> {
 /**
  * Create an admin user
  * @param username The admin username
- * @param passwordHash The hashed password
+ * @param passwordHash The hashed password (optional for Discord users)
  * @param user_id Optional user ID (Discord ID)
  * @returns Result of the operation
  */
-export async function createAdminUser(username: string, passwordHash: string, user_id?: string): Promise<UserResult> {
+export async function createAdminUser(username: string, passwordHash?: string, user_id?: string): Promise<UserResult> {
     try {
         const obj: User = {
             id: user_id || `admin_${Date.now()}`,
             username,
-            passwordHash,
             role: 'admin',
             points: 0,
             registeredAt: new Date()
         };
+
+        // Only add passwordHash if it's provided (for web admin users)
+        if (passwordHash) {
+            obj.passwordHash = passwordHash;
+        }
+
         const result = await collections.users.insertOne(obj);
-        return {
-            success: true,
-            data: obj
-        };
+
+        if (result.acknowledged) {
+            return {
+                success: true,
+                data: obj
+            };
+        } else {
+            return {
+                success: false,
+                error: 'Failed to create admin user'
+            };
+        }
     } catch (error) {
         console.error("Error creating admin user:", error);
         return {

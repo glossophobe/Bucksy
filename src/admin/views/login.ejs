@@ -22,7 +22,7 @@
                     Sign in to manage your bot
                 </p>
             </div>
-            <form class="mt-8 space-y-6" action="/login" method="POST">
+            <form class="mt-8 space-y-6" id="loginForm" onsubmit="return handleLogin(event)">
                 <% if (typeof error !=='undefined' && error !==null) { %>
                     <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
                         role="alert">
@@ -49,7 +49,13 @@
                         <div>
                             <button type="submit"
                                 class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                Sign in
+                                <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                </span>
+                                <span id="submitText">Sign in</span>
+                                <span id="loadingSpinner" class="hidden">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                </span>
                             </button>
                         </div>
             </form>
@@ -100,6 +106,71 @@
                 }
             });
         });
+
+        // Login form handling
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            const form = event.target;
+            const submitButton = form.querySelector('button[type="submit"]');
+            const submitText = document.getElementById('submitText');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const errorDiv = document.querySelector('.bg-red-100') || createErrorDiv(form);
+
+            // Show loading state
+            submitButton.disabled = true;
+            submitText.textContent = 'Signing in...';
+            loadingSpinner.classList.remove('hidden');
+            errorDiv.classList.add('hidden');
+
+            try {
+                const formData = new FormData(form);
+                console.log('Sending login request...');
+
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
+
+                if (data.success) {
+                    console.log('Login successful, redirecting...');
+                    window.location.href = data.redirect;
+                } else {
+                    console.log('Login failed:', data.error);
+                    showError(data.error || 'Login failed');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showError('An error occurred during login. Please try again.');
+            } finally {
+                // Reset button state
+                submitButton.disabled = false;
+                submitText.textContent = 'Sign in';
+                loadingSpinner.classList.add('hidden');
+            }
+
+            return false;
+        }
+
+        function createErrorDiv(form) {
+            const div = document.createElement('div');
+            div.className = 'bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4';
+            div.setAttribute('role', 'alert');
+            form.insertBefore(div, form.firstChild);
+            return div;
+        }
+
+        function showError(message) {
+            const form = document.getElementById('loginForm');
+            const errorDiv = document.querySelector('.bg-red-100') || createErrorDiv(form);
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            console.log('Showing error:', message);
+        }
     </script>
 </body>
 

@@ -36,16 +36,25 @@ app.use(session({
         crypto: {
             secret: process.env.SESSION_SECRET || 'your-secret-key'
         },
-        autoRemove: 'native', // Default
+        autoRemove: 'native',
         touchAfter: 24 * 3600 // 1 day (in seconds)
     }),
     cookie: {
         secure: isProduction,
         maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days in milliseconds
         sameSite: isProduction ? 'none' : 'lax',
-        httpOnly: true
-    }
+        httpOnly: true,
+        path: '/'
+    },
+    name: 'bucksy.sid' // Custom session name
 }));
+
+// Add session debugging middleware
+app.use((req: RequestWithSession, res: Response, next: NextFunction) => {
+    console.log('Session ID:', req.sessionID);
+    console.log('Session:', req.session);
+    next();
+});
 
 // View engine setup
 app.set('view engine', 'ejs');
@@ -86,42 +95,62 @@ app.get('/login', (req: RequestWithSession, res: Response) => {
 
 app.post('/login', async (req: RequestWithSession, res: Response) => {
     const { username, password } = req.body;
+    console.log('Login attempt for username:', username);
 
     try {
         // Find user by username
         const user = await DatabaseController.findUserByUsername(username);
+        console.log('Found user:', user ? 'Yes' : 'No', 'Role:', user?.role, 'Has password hash:', !!user?.passwordHash);
 
         // Check if user exists and has admin role
-        if (!user || user.role !== 'admin' || !user.passwordHash) {
-            res.render('login', {
-                error: 'Invalid username or password',
-                isProduction: process.env.NODE_ENV === 'production'
+        if (!user || user.role !== 'admin') {
+            console.log('Login failed: User not found or not admin');
+            res.status(401).json({
+                success: false,
+                error: 'Invalid username or password'
             });
             return;
         }
 
-        // Verify password
-        const passwordMatch = await bcrypt.compare(password, user.passwordHash);
+        // For web admin users, verify password
+        if (user.passwordHash) {
+            const passwordMatch = await bcrypt.compare(password, user.passwordHash);
+            console.log('Password match:', passwordMatch);
 
-        if (passwordMatch) {
-            // Set session variables
-            req.session.authenticated = true;
-            req.session.userId = user.id;
-            req.session.username = user.username;
-
-            // Redirect to dashboard
-            res.redirect('/');
+            if (!passwordMatch) {
+                console.log('Login failed: Invalid password');
+                res.status(401).json({
+                    success: false,
+                    error: 'Invalid username or password'
+                });
+                return;
+            }
         } else {
-            res.render('login', {
-                error: 'Invalid username or password',
-                isProduction: process.env.NODE_ENV === 'production'
+            console.log('Login failed: No password hash found');
+            // For Discord admin users, they need to be authenticated through Discord
+            res.status(401).json({
+                success: false,
+                error: 'This account requires Discord authentication'
             });
+            return;
         }
+
+        // Set session variables
+        req.session.authenticated = true;
+        req.session.userId = user.id;
+        req.session.username = user.username;
+        console.log('Login successful, setting session variables');
+
+        // Return success response
+        res.json({
+            success: true,
+            redirect: '/'
+        });
     } catch (error) {
         console.error('Login error:', error);
-        res.render('login', {
-            error: 'An error occurred during login',
-            isProduction: process.env.NODE_ENV === 'production'
+        res.status(500).json({
+            success: false,
+            error: 'An error occurred during login'
         });
     }
 });
