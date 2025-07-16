@@ -6,6 +6,9 @@ jspm_packages/
 dist/
 build/
 out/
+docs/
+nginx
+old
 
 # TypeScript cache
 *.tsbuildinfo
