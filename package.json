@@ -19,7 +19,7 @@
     "jimp": "^0.22.10",
     "mongodb": "^6.14.2",
     "potrace": "^2.1.8",
-    "puppeteer": "^22.4.0",
+    "puppeteer": "^24.15.0",
     "sharp": "^0.33.5",
     "tesseract.js": "^5.0.5"
   },
