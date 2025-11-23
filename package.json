@@ -9,7 +9,7 @@
     "bcrypt": "^5.1.1",
     "canvas": "^3.1.0",
     "connect-mongo": "^5.1.0",
-    "cron": "^4.1.0",
+    "cron": "^4.3.3",
     "discord.js": "^14.18.0",
     "dotenv": "^16.4.7",
     "ejs": "^3.1.9",
