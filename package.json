@@ -6,7 +6,7 @@
   "dependencies": {
     "axios": "^1.8.2",
     "bad-words": "^4.0.0",
-    "bcrypt": "^5.1.1",
+    "bcrypt": "^6.0.0",
     "canvas": "^3.1.0",
     "connect-mongo": "^5.1.0",
     "cron": "^4.1.0",
